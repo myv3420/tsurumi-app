@@ -5,18 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 
 <!-- PWA & ホーム画面アイコン設定 -->
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" type="image/png" href="icon.png">
+
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="鶴見線時刻表">
-<meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#eef3f7">
 
-<!-- アイコン画像の直接指定 -->
-<link rel="icon" href="./icon.png" type="image/png">
-<link rel="apple-touch-icon" href="./icon.png">
-
-<!-- Android Chrome用インラインManifest (Data URI) -->
-<link rel="manifest" href='data:application/manifest+json,{"name":"鶴見線時刻表","short_name":"鶴見線","start_url":"./","display":"standalone","background_color":"#eef3f7","theme_color":"#eef3f7","icons":[{"src":"./icon.png","sizes":"192x192 512x512","type":"image/png"}]}'>
+<!-- Android Chrome用インラインManifest -->
+<link rel="manifest" href='data:application/manifest+json,{"name":"鶴見線時刻表","short_name":"鶴見線","start_url":"./","display":"standalone","background_color":"#eef3f7","theme_color":"#eef3f7","icons":[{"src":"icon.png","sizes":"192x192 512x512","type":"image/png"}]}'>
 
 <title>鶴見線 時刻表</title>
 <style>
