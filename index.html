@@ -3,9 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+
+<!-- PWA & ホーム画面アイコン設定 -->
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="鶴見線時刻表">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#eef3f7">
+
+<!-- アイコン画像の指定 -->
+<link rel="icon" href="./icon.png" type="image/png">
+<link rel="apple-touch-icon" href="./icon.png">
+
 <title>鶴見線 時刻表</title>
 <style>
   :root {
@@ -186,7 +195,6 @@
     margin-top: 8px;
     color: var(--text);
   }
-  /* 次の時刻表示エリア */
   .second-bus {
     font-size: 0.8rem;
     font-weight: bold;
