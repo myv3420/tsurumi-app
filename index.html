@@ -6,10 +6,7 @@
 
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="icon" type="image/png" href="icon.png">
-<link rel="manifest" href="manifest.json">   <!-- ★この行を追加 -->
-<!-- ★シフトアプリと全く同じシンプルなアイコン指定★ -->
-<link rel="apple-touch-icon" href="icon.png">
-<link rel="icon" type="image/png" href="icon.png">
+<link rel="manifest" href="manifest.json">
 
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -297,7 +294,6 @@
   }
   .m-val { font-size: 1rem; font-weight: 800; font-variant-numeric: tabular-nums; }
   .m-route { font-size: 0.5rem; font-weight: bold; margin-top: -1px; }
-  .m-start { font-size: 0.44rem; font-weight: bold; color: var(--accent); margin-top: 1px; }
 
   .rt-ougi .m-val, .rt-ougi .m-route { color: var(--route-ougi); }
   .rt-hama .m-val, .rt-hama .m-route { color: var(--route-hama); }
@@ -585,40 +581,40 @@ const DEFAULT_DATA = {
   },
   toTsurumi: {
     w: [
-      {h:6,m:4,r:"tsurumi"},{h:6,m:20,r:"tsurumi"},{h:6,m:41,r:"tsurumi"},{h:6,m:51,r:"tsurumi",st:true},
-      {h:7,m:3,r:"tsurumi"},{h:7,m:14,r:"tsurumi",st:true},{h:7,m:26,r:"tsurumi"},{h:7,m:38,r:"tsurumi"},{h:7,m:51,r:"tsurumi"},
+      {h:6,m:4,r:"tsurumi"},{h:6,m:20,r:"tsurumi"},{h:6,m:41,r:"tsurumi"},{h:6,m:51,r:"tsurumi"},
+      {h:7,m:3,r:"tsurumi"},{h:7,m:14,r:"tsurumi"},{h:7,m:26,r:"tsurumi"},{h:7,m:38,r:"tsurumi"},{h:7,m:51,r:"tsurumi"},
       {h:8,m:5,r:"tsurumi"},{h:8,m:16,r:"tsurumi"},{h:8,m:31,r:"tsurumi"},{h:8,m:44,r:"tsurumi"},
       {h:9,m:3,r:"tsurumi"},{h:9,m:25,r:"tsurumi"},{h:9,m:41,r:"tsurumi"},
-      {h:10,m:14,r:"tsurumi"},{h:10,m:34,r:"tsurumi",st:true},{h:10,m:54,r:"tsurumi"},
-      {h:11,m:34,r:"tsurumi",st:true},
-      {h:12,m:14,r:"tsurumi"},{h:12,m:54,r:"tsurumi",st:true},
-      {h:13,m:34,r:"tsurumi",st:true},
-      {h:14,m:14,r:"tsurumi"},{h:14,m:54,r:"tsurumi",st:true},
-      {h:15,m:34,r:"tsurumi",st:true},
-      {h:16,m:14,r:"tsurumi"},{h:16,m:36,r:"tsurumi"},{h:16,m:56,r:"tsurumi",st:true},
-      {h:17,m:13,r:"tsurumi"},{h:17,m:35,r:"tsurumi"},{h:17,m:50,r:"tsurumi",st:true},{h:17,m:58,r:"tsurumi"},
-      {h:18,m:15,r:"tsurumi"},{h:18,m:24,r:"tsurumi",st:true},{h:18,m:43,r:"tsurumi"},
+      {h:10,m:14,r:"tsurumi"},{h:10,m:34,r:"tsurumi"},{h:10,m:54,r:"tsurumi"},
+      {h:11,m:34,r:"tsurumi"},
+      {h:12,m:14,r:"tsurumi"},{h:12,m:54,r:"tsurumi"},
+      {h:13,m:34,r:"tsurumi"},
+      {h:14,m:14,r:"tsurumi"},{h:14,m:54,r:"tsurumi"},
+      {h:15,m:34,r:"tsurumi"},
+      {h:16,m:14,r:"tsurumi"},{h:16,m:36,r:"tsurumi"},{h:16,m:56,r:"tsurumi"},
+      {h:17,m:13,r:"tsurumi"},{h:17,m:35,r:"tsurumi"},{h:17,m:50,r:"tsurumi"},{h:17,m:58,r:"tsurumi"},
+      {h:18,m:15,r:"tsurumi"},{h:18,m:24,r:"tsurumi"},{h:18,m:43,r:"tsurumi"},
       {h:19,m:6,r:"tsurumi"},{h:19,m:34,r:"tsurumi"},
       {h:20,m:15,r:"tsurumi"},{h:20,m:44,r:"tsurumi"},
-      {h:21,m:19,r:"tsurumi",st:true},{h:21,m:39,r:"tsurumi"},{h:21,m:59,r:"tsurumi",st:true},
-      {h:22,m:39,r:"tsurumi",st:true},{h:22,m:59,r:"tsurumi"},
+      {h:21,m:19,r:"tsurumi"},{h:21,m:39,r:"tsurumi"},{h:21,m:59,r:"tsurumi"},
+      {h:22,m:39,r:"tsurumi"},{h:22,m:59,r:"tsurumi"},
       {h:23,m:36,r:"tsurumi"}
     ],
     hol: [
       {h:6,m:4,r:"tsurumi"},{h:6,m:24,r:"tsurumi"},{h:6,m:44,r:"tsurumi"},
       {h:7,m:6,r:"tsurumi"},{h:7,m:26,r:"tsurumi"},{h:7,m:53,r:"tsurumi"},
-      {h:8,m:6,r:"tsurumi"},{h:8,m:35,r:"tsurumi"},{h:8,m:46,r:"tsurumi",st:true},
+      {h:8,m:6,r:"tsurumi"},{h:8,m:35,r:"tsurumi"},{h:8,m:46,r:"tsurumi"},
       {h:9,m:3,r:"tsurumi"},{h:9,m:29,r:"tsurumi"},
-      {h:10,m:11,r:"tsurumi"},{h:10,m:34,r:"tsurumi",st:true},{h:10,m:54,r:"tsurumi"},
-      {h:11,m:34,r:"tsurumi",st:true},
-      {h:12,m:14,r:"tsurumi"},{h:12,m:54,r:"tsurumi",st:true},
-      {h:13,m:34,r:"tsurumi",st:true},
-      {h:14,m:14,r:"tsurumi"},{h:14,m:54,r:"tsurumi",st:true},
-      {h:15,m:34,r:"tsurumi",st:true},
-      {h:16,m:14,r:"tsurumi"},{h:16,m:54,r:"tsurumi",st:true},
+      {h:10,m:11,r:"tsurumi"},{h:10,m:34,r:"tsurumi"},{h:10,m:54,r:"tsurumi"},
+      {h:11,m:34,r:"tsurumi"},
+      {h:12,m:14,r:"tsurumi"},{h:12,m:54,r:"tsurumi"},
+      {h:13,m:34,r:"tsurumi"},
+      {h:14,m:14,r:"tsurumi"},{h:14,m:54,r:"tsurumi"},
+      {h:15,m:34,r:"tsurumi"},
+      {h:16,m:14,r:"tsurumi"},{h:16,m:54,r:"tsurumi"},
       {h:17,m:14,r:"tsurumi"},{h:17,m:34,r:"tsurumi"},{h:17,m:54,r:"tsurumi"},
-      {h:18,m:25,r:"tsurumi"},{h:18,m:36,r:"tsurumi",st:true},{h:18,m:59,r:"tsurumi"},
-      {h:19,m:9,r:"tsurumi",st:true},{h:19,m:39,r:"tsurumi"},
+      {h:18,m:25,r:"tsurumi"},{h:18,m:36,r:"tsurumi"},{h:18,m:59,r:"tsurumi"},
+      {h:19,m:9,r:"tsurumi"},{h:19,m:39,r:"tsurumi"},
       {h:20,m:7,r:"tsurumi"},{h:20,m:44,r:"tsurumi"},
       {h:21,m:26,r:"tsurumi"},
       {h:22,m:14,r:"tsurumi"},{h:22,m:59,r:"tsurumi"},
@@ -627,7 +623,7 @@ const DEFAULT_DATA = {
   }
 };
 
-const VER_KEY = 'tsurumi_db_v7';
+const VER_KEY = 'tsurumi_db_v9';
 let db;
 if (!localStorage.getItem(VER_KEY)) {
   db = JSON.parse(JSON.stringify(DEFAULT_DATA));
@@ -803,8 +799,7 @@ function update() {
         isEditMode ? 'editable' : ''
       ].filter(Boolean).join(' ');
 
-      const startTag = (currentDir === 'toTsurumi' && item.st) ? `<div class="m-start">始発</div>` : '';
-      box.innerHTML = `<div class="m-val">${String(item.m).padStart(2,'0')}</div><div class="m-route">${ROUTE_LABEL[item.r] || ''}</div>${startTag}`;
+      box.innerHTML = `<div class="m-val">${String(item.m).padStart(2,'0')}</div><div class="m-route">${ROUTE_LABEL[item.r] || ''}</div>`;
       box.onclick = () => isEditMode ? removeTime(item) : selectBus(item);
 
       wrap.appendChild(box);
@@ -833,9 +828,6 @@ function update() {
     const color = ROUTE_COLOR[displayBus.r] || 'var(--accent)';
     routesHTML += `<span class="route-badge" style="background:${color};">${ROUTE_LABEL[displayBus.r]}</span>`;
     
-    if (currentDir === 'toTsurumi' && displayBus.st) {
-      routesHTML += `<span class="start-badge">始発</span>`;
-    }
     if (selectedBus) {
       routesHTML += `<span class="start-badge" style="color:var(--selected);border-color:var(--selected);">選択中</span>`;
     }
@@ -930,8 +922,6 @@ function addTime(hour) {
   }
 
   const entry = { h: hour, m: parseInt(min), r: route };
-  if (currentDir === 'toTsurumi' && confirm('始発として登録しますか？')) entry.st = true;
-
   db[currentDir][dayMode].push(entry);
   update();
 }
