@@ -49,7 +49,6 @@
     margin-bottom: 16px;
     box-shadow: 0 10px 28px rgba(31,43,56,0.08);
   }
-  /* 運行情報バナー */
   .status-banner {
     background: var(--surface2);
     border: 1px solid var(--line);
@@ -187,13 +186,14 @@
     margin-top: 8px;
     color: var(--text);
   }
+  /* 次の時刻表示エリア */
   .second-bus {
-    font-size: 0.78rem;
+    font-size: 0.8rem;
+    font-weight: bold;
     color: var(--text-dim);
-    margin-top: 8px;
-    padding-top: 8px;
-    border-top: 1px dashed var(--line);
-    display: none;
+    margin-top: 6px;
+    margin-bottom: 2px;
+    display: block;
   }
 
   .arrival-strip {
@@ -437,7 +437,6 @@
 <body>
 
 <div class="card">
-  <!-- リアルタイム運行情報表示エリア -->
   <div class="status-banner normal" id="status-banner" onclick="openTrainInfo()">
     <span id="status-icon">🟢</span>
     <span id="status-text">鶴見線：運行情報を確認中...</span>
@@ -594,7 +593,7 @@ const DEFAULT_DATA = {
       {h:20,m:15,r:"tsurumi"},{h:20,m:44,r:"tsurumi"},
       {h:21,m:19,r:"tsurumi",st:true},{h:21,m:39,r:"tsurumi"},{h:21,m:59,r:"tsurumi",st:true},
       {h:22,m:39,r:"tsurumi",st:true},{h:22,m:59,r:"tsurumi"},
-      {h:23,m:36,r:"tsurumi",st:true}
+      {h:23,m:36,r:"tsurumi"}
     ],
     hol: [
       {h:6,m:4,r:"tsurumi"},{h:6,m:24,r:"tsurumi"},{h:6,m:44,r:"tsurumi"},
@@ -614,12 +613,12 @@ const DEFAULT_DATA = {
       {h:20,m:7,r:"tsurumi"},{h:20,m:44,r:"tsurumi"},
       {h:21,m:26,r:"tsurumi"},
       {h:22,m:14,r:"tsurumi"},{h:22,m:59,r:"tsurumi"},
-      {h:23,m:36,r:"tsurumi",st:true}
+      {h:23,m:36,r:"tsurumi"}
     ]
   }
 };
 
-const VER_KEY = 'tsurumi_db_v6';
+const VER_KEY = 'tsurumi_db_v7';
 let db;
 if (!localStorage.getItem(VER_KEY)) {
   db = JSON.parse(JSON.stringify(DEFAULT_DATA));
@@ -635,7 +634,6 @@ let isEditMode = false;
 let selectedBus = null;
 let initialScrollDone = false;
 
-// 祝日自動判定機能
 async function checkHoliday() {
   const now = new Date();
   const y = now.getFullYear();
@@ -654,9 +652,7 @@ async function checkHoliday() {
         holidayName = data[todayStr];
       }
     }
-  } catch (e) {
-    console.log('祝日API取得失敗');
-  }
+  } catch (e) {}
 
   if (holidayName || dow === 0 || dow === 6) {
     dayMode = 'hol';
@@ -678,7 +674,6 @@ async function checkHoliday() {
   update();
 }
 
-// リアルタイム運行情報（安定型プロキシ経由取得）
 async function fetchTrainStatus() {
   const banner = document.getElementById('status-banner');
   const icon = document.getElementById('status-icon');
@@ -686,12 +681,10 @@ async function fetchTrainStatus() {
 
   try {
     const targetUrl = 'https://transit.yahoo.co.jp/diainfo/29/0';
-    // 新しいプロキシサービス（corsproxy.io）を使用して確実に読み込み
     const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(targetUrl)}`);
     
     if (res.ok) {
       const htmlText = await res.text();
-      
       if (htmlText.includes('事故・遅延情報はありません') || htmlText.includes('平常運転')) {
         banner.className = 'status-banner normal';
         icon.innerText = '🟢';
@@ -705,7 +698,6 @@ async function fetchTrainStatus() {
       throw new Error('通信エラー');
     }
   } catch (e) {
-    // 予備プロキシ（api.codetabs.com）で再試行
     try {
       const targetUrl = 'https://transit.yahoo.co.jp/diainfo/29/0';
       const res2 = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`);
@@ -852,7 +844,7 @@ function update() {
 
     const secEl = document.getElementById('second-info');
     if (second && !selectedBus) {
-      secEl.innerText = `次は ${second.h}:${String(second.m).padStart(2,'0')} (${ROUTE_LABEL[second.r]})`;
+      secEl.innerText = `次は ${second.h}:${String(second.m).padStart(2,'0')}（${ROUTE_LABEL[second.r]}）`;
       secEl.style.display = 'block';
     } else {
       secEl.style.display = 'none';
@@ -1066,11 +1058,10 @@ function showToast(msg, type = '') {
   });
 }
 
-// 初期実行と定期更新
 checkHoliday();
 fetchTrainStatus();
 setInterval(update, 10000);
-setInterval(fetchTrainStatus, 300000); // 5分ごとに運行情報を自動再取得
+setInterval(fetchTrainStatus, 300000);
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW登録失敗:', err));
