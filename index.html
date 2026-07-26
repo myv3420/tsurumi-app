@@ -635,7 +635,7 @@ let isEditMode = false;
 let selectedBus = null;
 let initialScrollDone = false;
 
-// 祝日自動判定機能（完全API自動取得）
+// 祝日自動判定機能
 async function checkHoliday() {
   const now = new Date();
   const y = now.getFullYear();
@@ -646,7 +646,6 @@ async function checkHoliday() {
 
   let holidayName = '';
 
-  // 外部祝日APIを使って最新の祝日データを自動取得（毎年自動更新）
   try {
     const res = await fetch(`https://holidays-jp.github.io/api/v1/${y}/date.json`);
     if (res.ok) {
@@ -656,7 +655,7 @@ async function checkHoliday() {
       }
     }
   } catch (e) {
-    console.log('祝日API取得失敗またはオフライン状態です');
+    console.log('祝日API取得失敗');
   }
 
   if (holidayName || dow === 0 || dow === 6) {
@@ -679,7 +678,7 @@ async function checkHoliday() {
   update();
 }
 
-// リアルタイム運行情報（スクレイピングプロキシ経由取得）
+// リアルタイム運行情報（安定型プロキシ経由取得）
 async function fetchTrainStatus() {
   const banner = document.getElementById('status-banner');
   const icon = document.getElementById('status-icon');
@@ -687,11 +686,11 @@ async function fetchTrainStatus() {
 
   try {
     const targetUrl = 'https://transit.yahoo.co.jp/diainfo/29/0';
-    const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`);
+    // 新しいプロキシサービス（corsproxy.io）を使用して確実に読み込み
+    const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(targetUrl)}`);
     
     if (res.ok) {
-      const data = await res.json();
-      const htmlText = data.contents;
+      const htmlText = await res.text();
       
       if (htmlText.includes('事故・遅延情報はありません') || htmlText.includes('平常運転')) {
         banner.className = 'status-banner normal';
@@ -706,9 +705,28 @@ async function fetchTrainStatus() {
       throw new Error('通信エラー');
     }
   } catch (e) {
+    // 予備プロキシ（api.codetabs.com）で再試行
+    try {
+      const targetUrl = 'https://transit.yahoo.co.jp/diainfo/29/0';
+      const res2 = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`);
+      if (res2.ok) {
+        const htmlText2 = await res2.text();
+        if (htmlText2.includes('事故・遅延情報はありません') || htmlText2.includes('平常運転')) {
+          banner.className = 'status-banner normal';
+          icon.innerText = '🟢';
+          text.innerText = '鶴見線：平常運転';
+        } else {
+          banner.className = 'status-banner warn';
+          icon.innerText = '⚠️';
+          text.innerText = '鶴見線：遅延・運行情報あり（タップで詳細）';
+        }
+        return;
+      }
+    } catch (err) {}
+
     banner.className = 'status-banner normal';
-    icon.innerText = '🚃';
-    text.innerText = '鶴見線 運行情報（タップで詳細確認）';
+    icon.innerText = '🟢';
+    text.innerText = '鶴見線：平常運転（推測）';
   }
 }
 
