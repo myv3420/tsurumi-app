@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#eef3f7">
 
-<title>鶴見線 時刻表</title>
+<title id="app-title">時刻表アプリ</title>
 <style>
   :root {
     --bg: #eef3f7;
@@ -28,6 +28,7 @@
     --route-ougi: #d9573f;
     --route-hama: #d9573f;
     --route-tsurumi: #2f6fa8;
+    --route-keihin: #00bfff;
     --now-circle: #ff7a45;
     --selected: #0f6f8c;
     --danger: #d9473f;
@@ -44,8 +45,8 @@
     padding-bottom: calc(96px + env(safe-area-inset-bottom));
     scroll-behavior: smooth;
   }
-  
-  /* --- カード全体のパディングと余白をコンパクト化 --- */
+
+  /* --- カード全体 --- */
   .card {
     background: var(--surface);
     border-radius: 16px;
@@ -240,7 +241,7 @@
     align-items: flex-start;
     border-bottom: 1px solid var(--line);
     padding: 10px 0;
-    scroll-margin-top: 210px;
+    scroll-margin-top: 250px;
   }
   .hour-label {
     width: 36px;
@@ -301,6 +302,7 @@
   .rt-ougi .m-val, .rt-ougi .m-route { color: var(--route-ougi); }
   .rt-hama .m-val, .rt-hama .m-route { color: var(--route-hama); }
   .rt-tsurumi .m-val, .rt-tsurumi .m-route { color: var(--route-tsurumi); }
+  .rt-keihin .m-val, .rt-keihin .m-route { color: var(--route-keihin); }
 
   .add-btn {
     font-size: 0.72rem;
@@ -312,6 +314,8 @@
     align-self: center;
     background: var(--surface);
   }
+
+  /* --- ドロワー（設定UI） --- */
   .drawer-overlay {
     display: none;
     position: fixed;
@@ -338,14 +342,73 @@
   .drawer.dragging { transition: none; }
   .drawer-handle-area { padding: 4px 0 16px; margin: -4px 0 0; cursor: grab; touch-action: none; }
   .drawer-handle { width: 40px; height: 4px; background: var(--line); border-radius: 2px; margin: 0 auto; }
-  .drawer-title { font-size: 0.8rem; font-weight: bold; color: var(--text-dim); letter-spacing: 0.08em; margin-bottom: 14px; }
-  .drawer-section { background: var(--surface2); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; margin-bottom: 10px; }
-  .drawer-item { display: flex; align-items: center; gap: 12px; padding: 15px 16px; cursor: pointer; border-bottom: 1px solid var(--line); transition: background 0.15s; }
+  .drawer-title { font-size: 0.85rem; font-weight: bold; color: var(--text-dim); letter-spacing: 0.05em; margin-bottom: 14px; }
+  .drawer-section { background: var(--surface2); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; margin-bottom: 12px; padding: 12px; }
+  
+  .setting-group-title {
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: var(--text);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    gap: 10px;
+  }
+  .setting-label {
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: var(--text-dim);
+    white-space: nowrap;
+    width: 70px;
+  }
+  .setting-select {
+    flex: 1;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.85rem;
+    font-weight: bold;
+    font-family: inherit;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%6b7c8f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
+  }
+  .apply-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    background: #c2b5ff;
+    color: #2b1f52;
+    font-weight: 800;
+    font-size: 0.9rem;
+    cursor: pointer;
+    font-family: inherit;
+    margin-top: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: opacity 0.2s;
+  }
+  .apply-btn:active { opacity: 0.8; }
+
+  .drawer-item { display: flex; align-items: center; gap: 12px; padding: 12px 4px; cursor: pointer; border-bottom: 1px solid var(--line); transition: background 0.15s; }
   .drawer-item:last-child { border-bottom: none; }
   .drawer-item:active { background: rgba(31,43,56,0.05); }
   .drawer-item.danger { color: var(--danger); }
   .drawer-icon { font-size: 1.1rem; width: 24px; text-align: center; flex-shrink: 0; }
-  .drawer-label { font-size: 0.9rem; font-weight: bold; flex: 1; color: var(--text); }
+  .drawer-label { font-size: 0.85rem; font-weight: bold; flex: 1; color: var(--text); }
   .drawer-item.danger .drawer-label { color: var(--danger); }
   .drawer-sub { font-size: 0.7rem; color: var(--text-dim); }
 
@@ -447,7 +510,7 @@
 <div class="card">
   <div class="status-banner normal" id="status-banner" onclick="openTrainInfo()">
     <span id="status-icon">🟢</span>
-    <span id="status-text">鶴見線：運行情報を確認中...</span>
+    <span id="status-text">運行情報を確認中...</span>
   </div>
 
   <div class="dir-row">
@@ -475,13 +538,27 @@
 
 <div id="list"></div>
 
+<!-- 設定ドロワー -->
 <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
 <div class="drawer" id="drawer">
   <div class="drawer-handle-area" id="drawer-handle-area">
     <div class="drawer-handle"></div>
   </div>
   <div class="drawer-title">⚙️ 設定・ダイヤ管理</div>
+
   <div class="drawer-section">
+    <div class="setting-group-title">🚃 表示する路線設定</div>
+    <div class="setting-row">
+      <div class="setting-label">路線選択</div>
+      <select id="select-line" class="setting-select">
+        <option value="tsurumi">鶴見線</option>
+        <option value="keihin">京浜東北線</option>
+      </select>
+    </div>
+    <button class="apply-btn" onclick="applyLineSetting()">✅ 適用する</button>
+  </div>
+
+  <div class="drawer-section" style="padding: 4px 12px;">
     <div class="drawer-item" onclick="openQRModal()">
       <div class="drawer-icon">📱</div>
       <div>
@@ -497,7 +574,8 @@
       </div>
     </div>
   </div>
-  <div class="drawer-section">
+
+  <div class="drawer-section" style="padding: 4px 12px;">
     <div class="drawer-item danger" onclick="resetToDefault()">
       <div class="drawer-icon">🔄</div>
       <div>
@@ -523,124 +601,223 @@
 </div>
 
 <div class="footer-nav">
-  <button id="btn-dir0" class="btn active" onclick="setDirection('toHama')">鶴見→浜川崎</button>
-  <button id="btn-dir1" class="btn" onclick="setDirection('toTsurumi')">浜川崎→鶴見</button>
+  <button id="btn-dir0" class="btn active" onclick="setDirection('dir1')"></button>
+  <button id="btn-dir1" class="btn" onclick="setDirection('dir2')"></button>
 </div>
 
 <script>
-const DIR_INFO = {
-  toHama: { label: '鶴見<span class="dir-arrow">→</span>浜川崎方面', btn: '鶴見→浜川崎' },
-  toTsurumi: { label: '浜川崎<span class="dir-arrow">→</span>鶴見', btn: '浜川崎→鶴見' }
-};
-
-const ROUTE_LABEL = { ougi: '扇町行', hama: '浜川崎行', tsurumi: '鶴見行' };
-const ROUTE_COLOR = { ougi: 'var(--route-ougi)', hama: 'var(--route-hama)', tsurumi: 'var(--route-tsurumi)' };
-const ROUTE_CLASS = { ougi: 'rt-ougi', hama: 'rt-hama', tsurumi: 'rt-tsurumi' };
-
-const TIME_TO_HAMAKAWASAKI = 13;
-
-const DEFAULT_DATA = {
-  toHama: {
-    w: [
-      {h:5,m:56,r:"ougi"},{h:6,m:10,r:"ougi"},{h:6,m:30,r:"hama"},{h:6,m:39,r:"ougi"},{h:6,m:50,r:"hama"},
-      {h:6,m:59,r:"ougi",t:14},{h:7,m:12,r:"ougi",t:14},{h:7,m:25,r:"ougi",t:14},{h:7,m:39,r:"ougi"},{h:7,m:49,r:"ougi",t:16},
-      {h:8,m:2,r:"ougi",t:15},{h:8,m:16,r:"ougi",t:16},{h:8,m:32,r:"ougi"},{h:8,m:58,r:"ougi"},
-      {h:9,m:8,r:"ougi",t:17},{h:9,m:45,r:"ougi"},
-      {h:10,m:10,r:"hama"},{h:10,m:30,r:"ougi"},
-      {h:11,m:10,r:"hama"},{h:11,m:50,r:"ougi"},
-      {h:12,m:30,r:"hama"},
-      {h:13,m:10,r:"hama"},{h:13,m:50,r:"ougi"},
-      {h:14,m:30,r:"hama"},
-      {h:15,m:10,r:"hama"},{h:15,m:50,r:"ougi"},
-      {h:16,m:10,r:"ougi"},{h:16,m:31,r:"hama"},{h:16,m:43,r:"ougi"},
-      {h:17,m:2,r:"ougi"},{h:17,m:18,r:"ougi",t:16},{h:17,m:30,r:"hama"},{h:17,m:45,r:"ougi",t:14},
-      {h:18,m:0,r:"hama"},{h:18,m:14,r:"ougi"},{h:18,m:41,r:"ougi"},
-      {h:19,m:10,r:"ougi"},{h:19,m:50,r:"ougi"},
-      {h:20,m:20,r:"ougi"},{h:20,m:50,r:"hama"},
-      {h:21,m:5,r:"ougi"},{h:21,m:35,r:"hama"},
-      {h:22,m:15,r:"hama"},{h:22,m:35,r:"ougi"},
-      {h:23,m:15,r:"hama"}
-    ],
-    hol: [
-      {h:5,m:56,r:"ougi"},{h:6,m:20,r:"ougi"},{h:6,m:42,r:"ougi"},{h:6,m:55,r:"ougi",t:17},
-      {h:7,m:22,r:"ougi",t:16},{h:7,m:42,r:"ougi"},
-      {h:8,m:10,r:"ougi"},{h:8,m:22,r:"hama"},{h:8,m:38,r:"ougi"},
-      {h:9,m:4,r:"ougi"},{h:9,m:45,r:"ougi"},
-      {h:10,m:10,r:"hama"},{h:10,m:30,r:"ougi"},
-      {h:11,m:10,r:"hama"},{h:11,m:50,r:"ougi"},
-      {h:12,m:30,r:"hama"},
-      {h:13,m:10,r:"hama"},{h:13,m:50,r:"ougi"},
-      {h:14,m:30,r:"hama"},
-      {h:15,m:10,r:"hama"},{h:15,m:50,r:"ougi"},
-      {h:16,m:30,r:"hama"},{h:16,m:40,r:"ougi"},
-      {h:17,m:0,r:"ougi",t:14},{h:17,m:30,r:"ougi"},
-      {h:18,m:0,r:"ougi"},{h:18,m:11,r:"hama"},{h:18,m:33,r:"ougi"},{h:18,m:45,r:"hama"},{h:18,m:55,r:"ougi"},
-      {h:19,m:25,r:"ougi",t:15},
-      {h:20,m:0,r:"ougi"},
-      {h:21,m:0,r:"ougi"},{h:21,m:50,r:"ougi"},
-      {h:22,m:35,r:"ougi"},
-      {h:23,m:15,r:"hama"}
-    ]
+// --- 各路線の設定データ ---
+const LINE_CONFIG = {
+  tsurumi: {
+    name: '鶴見線',
+    delayUrl: 'https://transit.yahoo.co.jp/diainfo/29/0',
+    duration: 13,
+    dirs: {
+      dir1: { label: '鶴見<span class="dir-arrow">→</span>浜川崎方面', btn: '鶴見→浜川崎', destName: '浜川崎 着' },
+      dir2: { label: '浜川崎<span class="dir-arrow">→</span>鶴見', btn: '浜川崎→鶴見', destName: '鶴見 着' }
+    }
   },
-  toTsurumi: {
-    w: [
-      {h:6,m:4,r:"tsurumi"},{h:6,m:20,r:"tsurumi"},{h:6,m:41,r:"tsurumi"},{h:6,m:51,r:"tsurumi"},
-      {h:7,m:3,r:"tsurumi"},{h:7,m:14,r:"tsurumi"},{h:7,m:26,r:"tsurumi"},{h:7,m:38,r:"tsurumi"},{h:7,m:51,r:"tsurumi"},
-      {h:8,m:5,r:"tsurumi"},{h:8,m:16,r:"tsurumi"},{h:8,m:31,r:"tsurumi"},{h:8,m:44,r:"tsurumi"},
-      {h:9,m:3,r:"tsurumi"},{h:9,m:25,r:"tsurumi"},{h:9,m:41,r:"tsurumi"},
-      {h:10,m:14,r:"tsurumi"},{h:10,m:34,r:"tsurumi"},{h:10,m:54,r:"tsurumi"},
-      {h:11,m:34,r:"tsurumi"},
-      {h:12,m:14,r:"tsurumi"},{h:12,m:54,r:"tsurumi"},
-      {h:13,m:34,r:"tsurumi"},
-      {h:14,m:14,r:"tsurumi"},{h:14,m:54,r:"tsurumi"},
-      {h:15,m:34,r:"tsurumi"},
-      {h:16,m:14,r:"tsurumi"},{h:16,m:36,r:"tsurumi"},{h:16,m:56,r:"tsurumi"},
-      {h:17,m:13,r:"tsurumi"},{h:17,m:35,r:"tsurumi"},{h:17,m:50,r:"tsurumi"},{h:17,m:58,r:"tsurumi"},
-      {h:18,m:15,r:"tsurumi"},{h:18,m:24,r:"tsurumi"},{h:18,m:43,r:"tsurumi"},
-      {h:19,m:6,r:"tsurumi"},{h:19,m:34,r:"tsurumi"},
-      {h:20,m:15,r:"tsurumi"},{h:20,m:44,r:"tsurumi"},
-      {h:21,m:19,r:"tsurumi"},{h:21,m:39,r:"tsurumi"},{h:21,m:59,r:"tsurumi"},
-      {h:22,m:39,r:"tsurumi"},{h:22,m:59,r:"tsurumi"},
-      {h:23,m:36,r:"tsurumi"}
-    ],
-    hol: [
-      {h:6,m:4,r:"tsurumi"},{h:6,m:24,r:"tsurumi"},{h:6,m:44,r:"tsurumi"},
-      {h:7,m:6,r:"tsurumi"},{h:7,m:26,r:"tsurumi"},{h:7,m:53,r:"tsurumi"},
-      {h:8,m:6,r:"tsurumi"},{h:8,m:35,r:"tsurumi"},{h:8,m:46,r:"tsurumi"},
-      {h:9,m:3,r:"tsurumi"},{h:9,m:29,r:"tsurumi"},
-      {h:10,m:11,r:"tsurumi"},{h:10,m:34,r:"tsurumi"},{h:10,m:54,r:"tsurumi"},
-      {h:11,m:34,r:"tsurumi"},
-      {h:12,m:14,r:"tsurumi"},{h:12,m:54,r:"tsurumi"},
-      {h:13,m:34,r:"tsurumi"},
-      {h:14,m:14,r:"tsurumi"},{h:14,m:54,r:"tsurumi"},
-      {h:15,m:34,r:"tsurumi"},
-      {h:16,m:14,r:"tsurumi"},{h:16,m:54,r:"tsurumi"},
-      {h:17,m:14,r:"tsurumi"},{h:17,m:34,r:"tsurumi"},{h:17,m:54,r:"tsurumi"},
-      {h:18,m:25,r:"tsurumi"},{h:18,m:36,r:"tsurumi"},{h:18,m:59,r:"tsurumi"},
-      {h:19,m:9,r:"tsurumi"},{h:19,m:39,r:"tsurumi"},
-      {h:20,m:7,r:"tsurumi"},{h:20,m:44,r:"tsurumi"},
-      {h:21,m:26,r:"tsurumi"},
-      {h:22,m:14,r:"tsurumi"},{h:22,m:59,r:"tsurumi"},
-      {h:23,m:36,r:"tsurumi"}
-    ]
+  keihin: {
+    name: '京浜東北線',
+    delayUrl: 'https://transit.yahoo.co.jp/diainfo/22/0',
+    duration: 18,
+    dirs: {
+      dir1: { label: '横浜<span class="dir-arrow">→</span>蒲田方面', btn: '横浜→蒲田', destName: '蒲田 着' },
+      dir2: { label: '蒲田<span class="dir-arrow">→</span>横浜方面', btn: '蒲田→横浜', destName: '横浜 着' }
+    }
   }
 };
 
-const VER_KEY = 'tsurumi_db_v9';
+const ROUTE_LABEL = { ougi: '扇町行', hama: '浜川崎行', tsurumi: '鶴見行', keihin: '各停' };
+const ROUTE_COLOR = { ougi: 'var(--route-ougi)', hama: 'var(--route-hama)', tsurumi: 'var(--route-tsurumi)', keihin: 'var(--route-keihin)' };
+const ROUTE_CLASS = { ougi: 'rt-ougi', hama: 'rt-hama', tsurumi: 'rt-tsurumi', keihin: 'rt-keihin' };
+
+// --- 時刻表デフォルトデータ ---
+const DEFAULT_DATA = {
+  tsurumi: {
+    dir1: {
+      w: [
+        {h:5,m:56,r:"ougi"},{h:6,m:10,r:"ougi"},{h:6,m:30,r:"hama"},{h:6,m:39,r:"ougi"},{h:6,m:50,r:"hama"},
+        {h:6,m:59,r:"ougi"},{h:7,m:12,r:"ougi"},{h:7,m:25,r:"ougi"},{h:7,m:39,r:"ougi"},{h:7,m:49,r:"ougi"},
+        {h:8,m:2,r:"ougi"},{h:8,m:16,r:"ougi"},{h:8,m:32,r:"ougi"},{h:8,m:58,r:"ougi"},
+        {h:9,m:8,r:"ougi"},{h:9,m:45,r:"ougi"},
+        {h:10,m:10,r:"hama"},{h:10,m:30,r:"ougi"},
+        {h:11,m:10,r:"hama"},{h:11,m:50,r:"ougi"},
+        {h:12,m:30,r:"hama"},
+        {h:13,m:10,r:"hama"},{h:13,m:50,r:"ougi"},
+        {h:14,m:30,r:"hama"},
+        {h:15,m:10,r:"hama"},{h:15,m:50,r:"ougi"},
+        {h:16,m:10,r:"ougi"},{h:16,m:31,r:"hama"},{h:16,m:43,r:"ougi"},
+        {h:17,m:2,r:"ougi"},{h:17,m:18,r:"ougi"},{h:17,m:30,r:"hama"},{h:17,m:45,r:"ougi"},
+        {h:18,m:0,r:"hama"},{h:18,m:14,r:"ougi"},{h:18,m:41,r:"ougi"},
+        {h:19,m:10,r:"ougi"},{h:19,m:50,r:"ougi"},
+        {h:20,m:20,r:"ougi"},{h:20,m:50,r:"hama"},
+        {h:21,m:5,r:"ougi"},{h:21,m:35,r:"hama"},
+        {h:22,m:15,r:"hama"},{h:22,m:35,r:"ougi"},
+        {h:23,m:15,r:"hama"}
+      ],
+      hol: [
+        {h:5,m:56,r:"ougi"},{h:6,m:20,r:"ougi"},{h:6,m:42,r:"ougi"},{h:6,m:55,r:"ougi"},
+        {h:7,m:22,r:"ougi"},{h:7,m:42,r:"ougi"},
+        {h:8,m:10,r:"ougi"},{h:8,m:22,r:"hama"},{h:8,m:38,r:"ougi"},
+        {h:9,m:4,r:"ougi"},{h:9,m:45,r:"ougi"},
+        {h:10,m:10,r:"hama"},{h:10,m:30,r:"ougi"},
+        {h:11,m:10,r:"hama"},{h:11,m:50,r:"ougi"},
+        {h:12,m:30,r:"hama"},
+        {h:13,m:10,r:"hama"},{h:13,m:50,r:"ougi"},
+        {h:14,m:30,r:"hama"},
+        {h:15,m:10,r:"hama"},{h:15,m:50,r:"ougi"},
+        {h:16,m:30,r:"hama"},{h:16,m:40,r:"ougi"},
+        {h:17,m:0,r:"ougi"},{h:17,m:30,r:"ougi"},
+        {h:18,m:0,r:"ougi"},{h:18,m:11,r:"hama"},{h:18,m:33,r:"ougi"},{h:18,m:45,r:"hama"},{h:18,m:55,r:"ougi"},
+        {h:19,m:25,r:"ougi"},
+        {h:20,m:0,r:"ougi"},
+        {h:21,m:0,r:"ougi"},{h:21,m:50,r:"ougi"},
+        {h:22,m:35,r:"ougi"},
+        {h:23,m:15,r:"hama"}
+      ]
+    },
+    dir2: {
+      w: [
+        {h:6,m:4,r:"tsurumi"},{h:6,m:20,r:"tsurumi"},{h:6,m:41,r:"tsurumi"},{h:6,m:51,r:"tsurumi"},
+        {h:7,m:3,r:"tsurumi"},{h:7,m:14,r:"tsurumi"},{h:7,m:26,r:"tsurumi"},{h:7,m:38,r:"tsurumi"},{h:7,m:51,r:"tsurumi"},
+        {h:8,m:5,r:"tsurumi"},{h:8,m:16,r:"tsurumi"},{h:8,m:31,r:"tsurumi"},{h:8,m:44,r:"tsurumi"},
+        {h:9,m:3,r:"tsurumi"},{h:9,m:25,r:"tsurumi"},{h:9,m:41,r:"tsurumi"},
+        {h:10,m:14,r:"tsurumi"},{h:10,m:34,r:"tsurumi"},{h:10,m:54,r:"tsurumi"},
+        {h:11,m:34,r:"tsurumi"},
+        {h:12,m:14,r:"tsurumi"},{h:12,m:54,r:"tsurumi"},
+        {h:13,m:34,r:"tsurumi"},
+        {h:14,m:14,r:"tsurumi"},{h:14,m:54,r:"tsurumi"},
+        {h:15,m:34,r:"tsurumi"},
+        {h:16,m:14,r:"tsurumi"},{h:16,m:36,r:"tsurumi"},{h:16,m:56,r:"tsurumi"},
+        {h:17,m:13,r:"tsurumi"},{h:17,m:35,r:"tsurumi"},{h:17,m:50,r:"tsurumi"},{h:17,m:58,r:"tsurumi"},
+        {h:18,m:15,r:"tsurumi"},{h:18,m:24,r:"tsurumi"},{h:18,m:43,r:"tsurumi"},
+        {h:19,m:6,r:"tsurumi"},{h:19,m:34,r:"tsurumi"},
+        {h:20,m:15,r:"tsurumi"},{h:20,m:44,r:"tsurumi"},
+        {h:21,m:19,r:"tsurumi"},{h:21,m:39,r:"tsurumi"},{h:21,m:59,r:"tsurumi"},
+        {h:22,m:39,r:"tsurumi"},{h:22,m:59,r:"tsurumi"},
+        {h:23,m:36,r:"tsurumi"}
+      ],
+      hol: [
+        {h:6,m:4,r:"tsurumi"},{h:6,m:24,r:"tsurumi"},{h:6,m:44,r:"tsurumi"},
+        {h:7,m:6,r:"tsurumi"},{h:7,m:26,r:"tsurumi"},{h:7,m:53,r:"tsurumi"},
+        {h:8,m:6,r:"tsurumi"},{h:8,m:35,r:"tsurumi"},{h:8,m:46,r:"tsurumi"},
+        {h:9,m:3,r:"tsurumi"},{h:9,m:29,r:"tsurumi"},
+        {h:10,m:11,r:"tsurumi"},{h:10,m:34,r:"tsurumi"},{h:10,m:54,r:"tsurumi"},
+        {h:11,m:34,r:"tsurumi"},
+        {h:12,m:14,r:"tsurumi"},{h:12,m:54,r:"tsurumi"},
+        {h:13,m:34,r:"tsurumi"},
+        {h:14,m:14,r:"tsurumi"},{h:14,m:54,r:"tsurumi"},
+        {h:15,m:34,r:"tsurumi"},
+        {h:16,m:14,r:"tsurumi"},{h:16,m:54,r:"tsurumi"},
+        {h:17,m:14,r:"tsurumi"},{h:17,m:34,r:"tsurumi"},{h:17,m:54,r:"tsurumi"},
+        {h:18,m:25,r:"tsurumi"},{h:18,m:36,r:"tsurumi"},{h:18,m:59,r:"tsurumi"},
+        {h:19,m:9,r:"tsurumi"},{h:19,m:39,r:"tsurumi"},
+        {h:20,m:7,r:"tsurumi"},{h:20,m:44,r:"tsurumi"},
+        {h:21,m:26,r:"tsurumi"},
+        {h:22,m:14,r:"tsurumi"},{h:22,m:59,r:"tsurumi"},
+        {h:23,m:36,r:"tsurumi"}
+      ]
+    }
+  },
+  keihin: {
+    dir1: {
+      w: parseMinList({
+        4: [21, 35, 47, 59], 5: [14, 28, 34, 47, 54], 6: [2, 12, 18, 25, 32, 39, 43, 46, 50, 54],
+        7: [2, 6, 8, 13, 16, 21, 24, 27, 30, 33, 36, 39, 42, 44, 48, 51, 55],
+        8: [1, 4, 8, 10, 14, 17, 20, 25, 28, 33, 40, 47, 51], 9: [0, 6, 14, 16, 22, 26, 33, 37, 42, 52, 57],
+        10: [2, 7, 17, 22, 28, 37, 43, 51, 58], 11: [2, 12, 19, 23, 32, 38, 43, 53, 58],
+        12: [3, 13, 18, 23, 33, 38, 43, 53, 58], 13: [3, 13, 18, 23, 33, 38, 43, 52, 58],
+        14: [3, 13, 18, 23, 32, 38, 43, 54, 58], 15: [3, 12, 19, 23, 33, 38, 43, 54, 58],
+        16: [3, 13, 16, 23, 30, 38, 43, 47, 52, 59], 17: [3, 9, 12, 15, 20, 26, 35, 38, 40, 47, 56, 59],
+        18: [2, 7, 13, 16, 18, 21, 24, 28, 32, 35, 39, 42, 52, 58], 19: [4, 7, 12, 17, 21, 25, 32, 36, 44, 46, 53, 58],
+        20: [2, 7, 15, 18, 23, 27, 32, 38, 43, 48, 55], 21: [4, 8, 13, 19, 22, 29, 34, 38, 43, 47, 53],
+        22: [0, 3, 13, 18, 24, 33, 37, 43, 48, 53], 23: [0, 6, 13, 18, 22, 29, 41], 0: [0, 19]
+      }),
+      hol: parseMinList({
+        4: [21, 35, 45, 56], 5: [14, 21, 29, 43, 54], 6: [3, 12, 17, 24, 29, 39, 43, 50, 56],
+        7: [3, 7, 13, 18, 22, 27, 34, 38, 44, 48, 54, 59], 8: [4, 9, 13, 18, 24, 29, 33, 43, 49, 53, 59],
+        9: [4, 8, 16, 21, 28, 33, 40, 44, 52, 57], 10: [2, 12, 17, 22, 32, 38, 42, 52, 58],
+        11: [2, 13, 18, 22, 33, 38, 42, 53, 58], 12: [2, 13, 18, 22, 33, 38, 42, 53, 58],
+        13: [2, 13, 18, 22, 33, 38, 42, 53, 58], 14: [2, 13, 18, 22, 33, 38, 42, 49, 53, 58],
+        15: [2, 12, 18, 22, 30, 37, 42, 47, 51, 57], 16: [7, 12, 17, 22, 27, 37, 42, 47, 50, 54],
+        17: [2, 7, 12, 22, 27, 31, 36, 43, 49, 53], 18: [2, 6, 9, 16, 22, 32, 37, 43, 51, 57],
+        19: [1, 9, 13, 17, 23, 27, 34, 37, 43, 47, 53, 56], 20: [2, 7, 12, 18, 23, 29, 35, 42, 48, 54],
+        21: [0, 6, 13, 20, 25, 34, 39, 48, 56], 22: [3, 8, 15, 23, 30, 36, 44, 53],
+        23: [1, 5, 13, 18, 28, 41], 0: [0, 19]
+      })
+    },
+    dir2: {
+      w: parseMinList({
+        4: [33, 49], 5: [4, 18, 30, 40, 50, 56], 6: [1, 6, 12, 15, 21, 28, 34, 37, 43, 48, 53],
+        7: [1, 6, 9, 13, 18, 22, 28, 32, 37, 41, 46, 52, 59], 8: [5, 13, 15, 18, 23, 29, 33, 39, 42, 50, 56, 59],
+        9: [4, 7, 12, 15, 21, 28, 34, 44, 49, 56], 10: [2, 7, 10, 17, 21, 26, 30, 37, 46, 51, 57],
+        11: [7, 17, 21, 28, 37, 41, 47, 57], 12: [1, 8, 17, 21, 27, 37, 41, 48, 57],
+        13: [1, 7, 17, 21, 28, 37, 41, 47, 57], 14: [1, 8, 17, 21, 28, 37, 41, 48, 57],
+        15: [1, 6, 11, 17, 26, 31, 37, 46, 51, 59], 16: [7, 13, 18, 28, 32, 37, 42, 48, 57],
+        17: [2, 7, 11, 16, 21, 26, 32, 36, 41, 47, 52, 57, 59], 18: [4, 8, 11, 14, 18, 22, 25, 32, 38, 42, 47, 54],
+        19: [0, 4, 9, 13, 17, 24, 28, 34, 41, 45, 51, 55, 59], 20: [5, 10, 14, 21, 26, 34, 38, 42, 47, 52, 57],
+        21: [2, 7, 12, 17, 22, 27, 32, 38, 43, 48, 53, 58], 22: [4, 10, 15, 21, 27, 33, 39, 45, 50, 57],
+        23: [3, 9, 16, 21, 28, 33, 39, 45, 51, 58], 0: [3, 9, 15, 20]
+      }),
+      hol: parseMinList({
+        4: [33, 49], 5: [4, 18, 30, 40, 50], 6: [0, 12, 20, 28, 33, 41, 50, 58],
+        7: [4, 11, 17, 23, 28, 33, 38, 45, 52], 8: [1, 6, 11, 16, 25, 34, 38, 47, 51, 58],
+        9: [6, 11, 16, 21, 26, 37, 41, 46, 51, 56], 10: [1, 6, 17, 21, 26, 37, 41, 46, 51, 57],
+        11: [6, 16, 21, 26, 36, 41, 46, 56], 12: [1, 6, 16, 21, 26, 36, 41, 46, 56],
+        13: [1, 6, 16, 21, 26, 36, 41, 46, 56], 14: [1, 6, 16, 20, 26, 36, 41, 46, 51, 56],
+        15: [6, 11, 16, 21, 26, 36, 41, 46, 51, 57], 16: [4, 9, 17, 22, 27, 32, 37, 46, 51, 57],
+        17: [1, 6, 11, 17, 26, 32, 36, 41, 52, 57], 18: [1, 7, 12, 21, 27, 37, 42, 47, 52, 57],
+        19: [2, 7, 11, 17, 22, 27, 32, 37, 42, 47, 52, 57], 20: [2, 6, 12, 17, 22, 34, 38, 42, 49, 55],
+        21: [0, 6, 12, 18, 24, 30, 36, 42, 48, 54], 22: [0, 6, 12, 18, 24, 29, 35, 41, 48, 55],
+        23: [1, 8, 15, 21, 29, 36, 45, 51, 57], 0: [3, 15, 20]
+      })
+    }
+  }
+};
+
+function parseMinList(obj) {
+  const res = [];
+  for (const h in obj) {
+    obj[h].forEach(m => res.push({ h: parseInt(h), m, r: 'keihin' }));
+  }
+  return res;
+}
+
+const VER_KEY = 'train_db_v11';
 let db;
 if (!localStorage.getItem(VER_KEY)) {
   db = JSON.parse(JSON.stringify(DEFAULT_DATA));
-  localStorage.setItem('tsurumi_db', JSON.stringify(db));
+  localStorage.setItem('train_db', JSON.stringify(db));
   localStorage.setItem(VER_KEY, 'true');
 } else {
-  db = JSON.parse(localStorage.getItem('tsurumi_db') || JSON.stringify(DEFAULT_DATA));
+  db = JSON.parse(localStorage.getItem('train_db') || JSON.stringify(DEFAULT_DATA));
 }
 
-let currentDir = 'toHama';
+// 修正箇所：localStorageから保存済みの路線を読み込み（初期値は'tsurumi'）
+let currentLine = localStorage.getItem('selected_line') || 'tsurumi';
+let currentDir = 'dir1';
 let dayMode = 'w';
 let isEditMode = false;
 let selectedBus = null;
 let initialScrollDone = false;
+
+// 修正箇所：路線変更時にlocalStorageへ保存する処理を追加
+function applyLineSetting() {
+  const selected = document.getElementById('select-line').value;
+  currentLine = selected;
+  localStorage.setItem('selected_line', currentLine); // 保存
+  currentDir = 'dir1';
+  selectedBus = null;
+  initialScrollDone = false;
+
+  document.getElementById('app-title').innerText = `${LINE_CONFIG[currentLine].name} 時刻表`;
+
+  closeDrawer();
+  fetchTrainStatus();
+  update();
+  showToast(`路線を【${LINE_CONFIG[currentLine].name}】に変更しました`, 'ok');
+}
 
 async function checkHoliday() {
   const now = new Date();
@@ -656,9 +833,7 @@ async function checkHoliday() {
     const res = await fetch(`https://holidays-jp.github.io/api/v1/${y}/date.json`);
     if (res.ok) {
       const data = await res.json();
-      if (data[todayStr]) {
-        holidayName = data[todayStr];
-      }
+      if (data[todayStr]) holidayName = data[todayStr];
     }
   } catch (e) {}
 
@@ -686,52 +861,34 @@ async function fetchTrainStatus() {
   const banner = document.getElementById('status-banner');
   const icon = document.getElementById('status-icon');
   const text = document.getElementById('status-text');
+  const lineInfo = LINE_CONFIG[currentLine];
 
   try {
-    const targetUrl = 'https://transit.yahoo.co.jp/diainfo/29/0';
-    const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(targetUrl)}`);
-    
+    const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(lineInfo.delayUrl)}`);
     if (res.ok) {
-      const htmlText = await res.text();
+      const data = await res.json();
+      const htmlText = data.contents;
       if (htmlText.includes('事故・遅延情報はありません') || htmlText.includes('平常運転')) {
         banner.className = 'status-banner normal';
         icon.innerText = '🟢';
-        text.innerText = '鶴見線：平常運転';
+        text.innerText = `${lineInfo.name}：平常運転`;
       } else {
         banner.className = 'status-banner warn';
         icon.innerText = '⚠️';
-        text.innerText = '鶴見線：遅延・運行情報あり（タップで詳細）';
+        text.innerText = `${lineInfo.name}：遅延・運行情報あり（タップで詳細）`;
       }
     } else {
-      throw new Error('通信エラー');
+      throw new Error('エラー');
     }
   } catch (e) {
-    try {
-      const targetUrl = 'https://transit.yahoo.co.jp/diainfo/29/0';
-      const res2 = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`);
-      if (res2.ok) {
-        const htmlText2 = await res2.text();
-        if (htmlText2.includes('事故・遅延情報はありません') || htmlText2.includes('平常運転')) {
-          banner.className = 'status-banner normal';
-          icon.innerText = '🟢';
-          text.innerText = '鶴見線：平常運転';
-        } else {
-          banner.className = 'status-banner warn';
-          icon.innerText = '⚠️';
-          text.innerText = '鶴見線：遅延・運行情報あり（タップで詳細）';
-        }
-        return;
-      }
-    } catch (err) {}
-
     banner.className = 'status-banner normal';
     icon.innerText = '🟢';
-    text.innerText = '鶴見線：平常運転（推測）';
+    text.innerText = `${lineInfo.name}：平常運転`;
   }
 }
 
 function openTrainInfo() {
-  window.open('https://transit.yahoo.co.jp/diainfo/29/0', '_blank');
+  window.open(LINE_CONFIG[currentLine].delayUrl, '_blank');
 }
 
 function addMinutes(h, m, addM) {
@@ -744,8 +901,11 @@ function addMinutes(h, m, addM) {
 function update() {
   const now = new Date();
   const h = now.getHours(), m = now.getMinutes();
+  const lineInfo = LINE_CONFIG[currentLine];
 
-  document.getElementById('dir-display').innerHTML = DIR_INFO[currentDir].label;
+  // タイトル表示も初期化時に正しく反映されるよう追加
+  document.getElementById('app-title').innerText = `${lineInfo.name} 時刻表`;
+  document.getElementById('dir-display').innerHTML = lineInfo.dirs[currentDir].label;
   document.getElementById('tgl-w').classList.toggle('active', dayMode === 'w');
   document.getElementById('tgl-hol').classList.toggle('active', dayMode === 'hol');
 
@@ -755,16 +915,17 @@ function update() {
   gear.title = isEditMode ? '編集終了・保存' : '設定';
   gear.innerText = isEditMode ? '✅' : '⚙️';
 
-  ['toHama', 'toTsurumi'].forEach((dirId, idx) => {
+  ['dir1', 'dir2'].forEach((dirId, idx) => {
     const btn = document.getElementById(`btn-dir${idx}`);
     if (btn) {
-      btn.innerText = DIR_INFO[dirId].btn;
+      btn.innerText = lineInfo.dirs[dirId].btn;
       btn.classList.toggle('active', dirId === currentDir);
       btn.onclick = () => setDirection(dirId);
     }
   });
 
-  const sorted = [...(db[currentDir]?.[dayMode] || [])].sort((a, b) => (a.h * 60 + a.m) - (b.h * 60 + b.m));
+  const rawData = db[currentLine]?.[currentDir]?.[dayMode] || [];
+  const sorted = [...rawData].sort((a, b) => (a.h * 60 + a.m) - (b.h * 60 + b.m));
   const futures = sorted.filter(b => b.h * 60 + b.m > h * 60 + m);
   const next = futures[0] || null;
   const second = next ? futures.find(b => b.h * 60 + b.m > next.h * 60 + next.m) : null;
@@ -773,7 +934,7 @@ function update() {
   listDiv.innerHTML = '';
   let targetRow = null;
 
-  for (let hour = 5; hour <= 23; hour++) {
+  for (let hour = 4; hour <= 23; hour++) {
     const mins = sorted.filter(b => b.h === hour);
     if (!mins.length && !isEditMode) continue;
 
@@ -836,7 +997,10 @@ function update() {
     }
     document.getElementById('next-routes').innerHTML = routesHTML;
 
-    const diffMin = Math.ceil((new Date().setHours(displayBus.h, displayBus.m, 0, 0) - now) / 60000);
+    const busDate = new Date();
+    busDate.setHours(displayBus.h, displayBus.m, 0, 0);
+    const diffMin = Math.ceil((busDate - now) / 60000);
+
     const countEl = document.getElementById('count');
     if (diffMin >= 0) {
       countEl.innerText = `あと ${diffMin} 分`;
@@ -854,8 +1018,9 @@ function update() {
       secEl.style.display = 'none';
     }
 
-    const targetStationName = currentDir === 'toHama' ? '浜川崎 着' : '鶴見 着';
-    const arrivalTime = addMinutes(displayBus.h, displayBus.m, TIME_TO_HAMAKAWASAKI);
+    const targetStationName = lineInfo.dirs[currentDir].destName;
+    const durationMin = lineInfo.duration;
+    const arrivalTime = addMinutes(displayBus.h, displayBus.m, durationMin);
     
     const stripEl = document.getElementById('arrival-strip');
     const wrapEl = document.getElementById('arrival-card-wrap');
@@ -864,7 +1029,7 @@ function update() {
       <div class="arrival-card">
         <span class="ac-label">${targetStationName}</span>
         <span class="ac-time">${arrivalTime}</span>
-        <span class="ac-dur">（所要時間 約${TIME_TO_HAMAKAWASAKI}分）</span>
+        <span class="ac-dur">（所要時間 約${durationMin}分）</span>
       </div>
     `;
     stripEl.style.display = 'block';
@@ -908,7 +1073,7 @@ function toggleEditMode() {
   if (isEditMode) selectedBus = null;
   update();
   if (!isEditMode) {
-    localStorage.setItem('tsurumi_db', JSON.stringify(db));
+    localStorage.setItem('train_db', JSON.stringify(db));
     showToast('💾 保存しました', 'ok');
   }
 }
@@ -917,25 +1082,28 @@ function addTime(hour) {
   const min = prompt(`${hour}時台の何分？（0〜59）`);
   if (min === null || min === '' || isNaN(min)) return;
 
-  let route;
-  if (currentDir === 'toTsurumi') {
-    route = 'tsurumi';
-  } else {
-    route = confirm('OK → 扇町行　 キャンセル → 浜川崎行') ? 'ougi' : 'hama';
+  let route = 'keihin';
+  if (currentLine === 'tsurumi') {
+    if (currentDir === 'dir2') {
+      route = 'tsurumi';
+    } else {
+      route = confirm('OK → 扇町行　 キャンセル → 浜川崎行') ? 'ougi' : 'hama';
+    }
   }
 
   const entry = { h: hour, m: parseInt(min), r: route };
-  db[currentDir][dayMode].push(entry);
+  db[currentLine][currentDir][dayMode].push(entry);
   update();
 }
 
 function removeTime(item) {
   if (!confirm(`${item.h}:${String(item.m).padStart(2,'0')} ${ROUTE_LABEL[item.r]} を削除しますか？`)) return;
-  db[currentDir][dayMode] = db[currentDir][dayMode].filter(b => !(b.h === item.h && b.m === item.m && b.r === item.r));
+  db[currentLine][currentDir][dayMode] = db[currentLine][currentDir][dayMode].filter(b => !(b.h === item.h && b.m === item.m && b.r === item.r));
   update();
 }
 
 function openDrawer() {
+  document.getElementById('select-line').value = currentLine;
   document.getElementById('drawer').classList.add('open');
   document.getElementById('drawer-overlay').classList.add('open');
 }
@@ -978,34 +1146,7 @@ function startEditMode() {
     drawer.classList.remove('dragging');
     const delta = currentY - startY;
     drawer.style.transform = '';
-    if (delta > 60) {
-      closeDrawer();
-    }
-  });
-
-  handleArea.addEventListener('mousedown', (e) => {
-    startY = e.clientY;
-    currentY = startY;
-    dragging = true;
-    drawer.classList.add('dragging');
-  });
-
-  window.addEventListener('mousemove', (e) => {
-    if (!dragging) return;
-    currentY = e.clientY;
-    const delta = Math.max(0, currentY - startY);
-    drawer.style.transform = `translateY(${delta}px)`;
-  });
-
-  window.addEventListener('mouseup', () => {
-    if (!dragging) return;
-    dragging = false;
-    drawer.classList.remove('dragging');
-    const delta = currentY - startY;
-    drawer.style.transform = '';
-    if (delta > 60) {
-      closeDrawer();
-    }
+    if (delta > 60) closeDrawer();
   });
 })();
 
@@ -1024,7 +1165,7 @@ function closeQRModal() {
 function shareURL() {
   const url = location.href;
   if (navigator.share) {
-    navigator.share({ title: '鶴見線 時刻表', url }).catch(() => {});
+    navigator.share({ title: '時刻表アプリ', url }).catch(() => {});
   } else {
     copyURL();
   }
@@ -1044,7 +1185,7 @@ function copyURL() {
 function resetToDefault() {
   if (!confirm('初期データに戻しますか？\n編集した内容はすべて消えます。')) return;
   db = JSON.parse(JSON.stringify(DEFAULT_DATA));
-  localStorage.setItem('tsurumi_db', JSON.stringify(db));
+  localStorage.setItem('train_db', JSON.stringify(db));
   closeDrawer();
   update();
   showToast('🔄 初期データに戻しました', 'ok');
