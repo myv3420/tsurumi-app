@@ -880,13 +880,31 @@ async function fetchTrainStatus() {
       const data = await res.json();
       const htmlText = data.contents;
       
-      // 遅延・見合わせ・事故等の警告判定キーワード
-      const isWarn = htmlText.includes('事故') || 
-                     htmlText.includes('遅延') || 
-                     htmlText.includes('運転見合わせ') || 
-                     htmlText.includes('ダイヤ乱れ') || 
-                     htmlText.includes('運転変更') ||
-                     (htmlText.includes('trouble') && !htmlText.includes('平常運転'));
+      // HTMLからメインの運行情報エリア（#mdStatusTroubleや.trouble等）を判定
+      let isWarn = false;
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlText, 'text/html');
+      
+      // 該当路線の運行情報エリアを取得
+      const statusArea = doc.querySelector('#mdStatusTrouble, .trouble, .icnNormal, .icnNotice');
+      
+      if (statusArea) {
+        const areaText = statusArea.textContent || '';
+        // エリア内に「平常運転」が含まれず、かつトラブル関連文言があるか判定
+        isWarn = !areaText.includes('平常運転') && (
+          areaText.includes('事故') || 
+          areaText.includes('遅延') || 
+          areaText.includes('見合わせ') || 
+          areaText.includes('乱れ') || 
+          areaText.includes('変更')
+        );
+      } else {
+        // エリアが見つからない場合のフォールバック（「平常運転」表記がなく「列車遅延」等の見出しがあるか）
+        const troubleHeader = doc.querySelector('dt.trouble, div.trouble');
+        if (troubleHeader) {
+          isWarn = true;
+        }
+      }
 
       if (!isWarn) {
         banner.className = 'status-banner normal';
