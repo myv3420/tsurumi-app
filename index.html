@@ -861,20 +861,18 @@ async function checkHoliday() {
   update();
 }
 
-// 運行状況の判定ロジック強化版
+// 運行状況の判定ロジック修正版
 async function fetchTrainStatus() {
-  const lineAtStart = currentLine; // リクエスト開始時点の路線を記録
+  const lineAtStart = currentLine;
   const banner = document.getElementById('status-banner');
   const icon = document.getElementById('status-icon');
   const text = document.getElementById('status-text');
   const lineInfo = LINE_CONFIG[lineAtStart];
 
   try {
-    // キャッシュ回避用にタイムスタンプを付与
     const cacheBusterUrl = `${lineInfo.delayUrl}?_=${Date.now()}`;
     const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(cacheBusterUrl)}`);
     
-    // 応答が返ってきた時点で路線が切り替わっていれば処理を破棄
     if (currentLine !== lineAtStart) return;
 
     if (res.ok) {
@@ -882,39 +880,21 @@ async function fetchTrainStatus() {
       const parser = new DOMParser();
       const doc = parser.parseFromString(data.contents, 'text/html');
 
-      // Yahoo!路線情報の運行状況テキストを取得
+      // Yahoo!の運行状況テキストエリアを取得
       const troubleElement = doc.querySelector('.trouble') || doc.querySelector('#mdServiceStatus') || doc.querySelector('#mdStatusTrouble');
-      const mainText = doc.body ? doc.body.innerText : '';
+      const troubleText = troubleElement ? troubleElement.innerText.trim() : '';
 
-      let isDelay = false;
-      let statusMsg = `${lineInfo.name}：平常運転`;
+      // トラブル判定キーワード
+      const delayKeywords = ['遅延', '運休', '運転見合わせ', '見合わせ', 'ダイヤ乱れ', '踏切', '事故', '見合わせ中'];
+      const isDelay = delayKeywords.some(keyword => troubleText.includes(keyword));
 
-      // 判定キーワードの定義
-      const delayKeywords = ['遅延', '運休', '運転見合わせ', '見合わせ', 'ダイヤ乱れ', '踏切内点検', '人身事故', '事故', '変更'];
-
-      // 1. トラブルエリアが存在し、かつトラブルキーワードが含まれているか
-      if (troubleElement) {
-        const troubleText = troubleElement.innerText;
-        isDelay = delayKeywords.some(keyword => troubleText.includes(keyword));
-        if (isDelay) {
-          statusMsg = `${lineInfo.name}：遅延・運行情報あり（タップで詳細）`;
-        }
-      }
-
-      // 2. 万が一上記で引っかからなくても、全体のテキストから判定（バックアップ判定）
-      if (!isDelay && delayKeywords.some(keyword => mainText.includes(keyword))) {
-        // ただし「平常運転」が含まれる否定文（遅延情報はありません等）での誤検知を防止
-        if (!mainText.includes('平常運転') || mainText.includes('一部列車に遅れ')) {
-          isDelay = true;
-          statusMsg = `${lineInfo.name}：列車遅延あり（タップで詳細）`;
-        }
-      }
-
-      // 表示の更新
       if (isDelay) {
         banner.className = 'status-banner warn';
         icon.innerText = '⚠️';
-        text.innerText = statusMsg;
+        // 取得できたテキストから要約して表示（長すぎる場合は省略）
+        const cleanText = troubleText.replace(/\s+/g, ' ');
+        const shortMsg = cleanText.length > 25 ? cleanText.substring(0, 25) + '...' : cleanText;
+        text.innerText = `${lineInfo.name}：${shortMsg}`;
       } else {
         banner.className = 'status-banner normal';
         icon.innerText = '🟢';
