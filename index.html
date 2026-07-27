@@ -794,7 +794,6 @@ if (!localStorage.getItem(VER_KEY)) {
   db = JSON.parse(localStorage.getItem('train_db') || JSON.stringify(DEFAULT_DATA));
 }
 
-// 修正箇所：localStorageから保存済みの路線を読み込み（初期値は'tsurumi'）
 let currentLine = localStorage.getItem('selected_line') || 'tsurumi';
 let currentDir = 'dir1';
 let dayMode = 'w';
@@ -802,16 +801,21 @@ let isEditMode = false;
 let selectedBus = null;
 let initialScrollDone = false;
 
-// 修正箇所：路線変更時にlocalStorageへ保存する処理を追加
 function applyLineSetting() {
   const selected = document.getElementById('select-line').value;
   currentLine = selected;
-  localStorage.setItem('selected_line', currentLine); // 保存
+  localStorage.setItem('selected_line', currentLine);
   currentDir = 'dir1';
   selectedBus = null;
   initialScrollDone = false;
 
   document.getElementById('app-title').innerText = `${LINE_CONFIG[currentLine].name} 時刻表`;
+
+  // バナーを一時的に読み込み中に変更
+  const banner = document.getElementById('status-banner');
+  banner.className = 'status-banner normal';
+  document.getElementById('status-icon').innerText = '🟢';
+  document.getElementById('status-text').innerText = `${LINE_CONFIG[currentLine].name}：運行情報を確認中...`;
 
   closeDrawer();
   fetchTrainStatus();
@@ -858,17 +862,33 @@ async function checkHoliday() {
 }
 
 async function fetchTrainStatus() {
+  const lineAtStart = currentLine; // リクエスト開始時点の路線を記録
   const banner = document.getElementById('status-banner');
   const icon = document.getElementById('status-icon');
   const text = document.getElementById('status-text');
-  const lineInfo = LINE_CONFIG[currentLine];
+  const lineInfo = LINE_CONFIG[lineAtStart];
 
   try {
-    const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(lineInfo.delayUrl)}`);
+    // キャッシュ回避用にタイムスタンプを付与
+    const cacheBusterUrl = `${lineInfo.delayUrl}?_=${Date.now()}`;
+    const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(cacheBusterUrl)}`);
+    
+    // 応答が返ってきた時点で路線が切り替わっていれば処理を破棄（古い情報で上書きしない）
+    if (currentLine !== lineAtStart) return;
+
     if (res.ok) {
       const data = await res.json();
       const htmlText = data.contents;
-      if (htmlText.includes('事故・遅延情報はありません') || htmlText.includes('平常運転')) {
+      
+      // 遅延・見合わせ・事故等の警告判定キーワード
+      const isWarn = htmlText.includes('事故') || 
+                     htmlText.includes('遅延') || 
+                     htmlText.includes('運転見合わせ') || 
+                     htmlText.includes('ダイヤ乱れ') || 
+                     htmlText.includes('運転変更') ||
+                     (htmlText.includes('trouble') && !htmlText.includes('平常運転'));
+
+      if (!isWarn) {
         banner.className = 'status-banner normal';
         icon.innerText = '🟢';
         text.innerText = `${lineInfo.name}：平常運転`;
@@ -881,6 +901,7 @@ async function fetchTrainStatus() {
       throw new Error('エラー');
     }
   } catch (e) {
+    if (currentLine !== lineAtStart) return;
     banner.className = 'status-banner normal';
     icon.innerText = '🟢';
     text.innerText = `${lineInfo.name}：平常運転`;
@@ -903,7 +924,6 @@ function update() {
   const h = now.getHours(), m = now.getMinutes();
   const lineInfo = LINE_CONFIG[currentLine];
 
-  // タイトル表示も初期化時に正しく反映されるよう追加
   document.getElementById('app-title').innerText = `${lineInfo.name} 時刻表`;
   document.getElementById('dir-display').innerHTML = lineInfo.dirs[currentDir].label;
   document.getElementById('tgl-w').classList.toggle('active', dayMode === 'w');
