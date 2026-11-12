@@ -785,7 +785,9 @@ function parseMinList(obj) {
 }
 
 const VER_KEY = 'train_db_v11';
+const SRC_VER_KEY = 'train_db_src_ver';
 let db;
+let LATEST_DATA = null;
 if (!localStorage.getItem(VER_KEY)) {
   db = JSON.parse(JSON.stringify(DEFAULT_DATA));
   localStorage.setItem('train_db', JSON.stringify(db));
@@ -793,6 +795,21 @@ if (!localStorage.getItem(VER_KEY)) {
 } else {
   db = JSON.parse(localStorage.getItem('train_db') || JSON.stringify(DEFAULT_DATA));
 }
+// 時刻表データ（timetable.json）を読み込み、新しい版があれば差し替える
+fetch('timetable.json?_=' + Date.now())
+  .then(r => (r.ok ? r.json() : null))
+  .then(j => {
+    if (!j || !j.data) return;
+    LATEST_DATA = j.data;
+    const cur = parseInt(localStorage.getItem(SRC_VER_KEY) || '0', 10);
+    if ((j.version || 0) > cur) {
+      localStorage.setItem(SRC_VER_KEY, String(j.version));
+      db = JSON.parse(JSON.stringify(j.data));
+      localStorage.setItem('train_db', JSON.stringify(db));
+      if (typeof update === 'function') update();
+    }
+  })
+  .catch(() => {});
 
 let currentLine = localStorage.getItem('selected_line') || 'tsurumi';
 let currentDir = 'dir1';
@@ -1208,7 +1225,7 @@ function copyURL() {
 
 function resetToDefault() {
   if (!confirm('初期データに戻しますか？\n編集した内容はすべて消えます。')) return;
-  db = JSON.parse(JSON.stringify(DEFAULT_DATA));
+  db = JSON.parse(JSON.stringify(LATEST_DATA || DEFAULT_DATA));
   localStorage.setItem('train_db', JSON.stringify(db));
   closeDrawer();
   update();
