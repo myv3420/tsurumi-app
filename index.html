@@ -76,6 +76,7 @@
   }
   .status-banner.normal { color: var(--status-normal); border-color: rgba(31,138,112,0.3); background: rgba(31,138,112,0.06); }
   .status-banner.warn { color: var(--status-warn); border-color: rgba(217,87,63,0.4); background: rgba(217,87,63,0.08); font-weight: 800; }
+  .status-banner.unknown { color: var(--text-dim); border-color: var(--line); background: var(--surface2); }
   
   .dir-row {
     display: flex;
@@ -610,7 +611,7 @@
 const LINE_CONFIG = {
   tsurumi: {
     name: '鶴見線',
-    delayUrl: 'https://transit.yahoo.co.jp/diainfo/29/0',
+    delayUrl: 'https://transit.yahoo.co.jp/diainfo/36/0',
     duration: 13,
     dirs: {
       dir1: { label: '鶴見<span class="dir-arrow">→</span>浜川崎方面', btn: '鶴見→浜川崎', destName: '浜川崎 着' },
@@ -878,54 +879,85 @@ async function checkHoliday() {
   update();
 }
 
-// 運行状況の判定ロジック修正版
+// 運行状況の取得：複数ルートで試し、失敗時は「取得できませんでした」と正直に表示する
+async function fetchWithTimeout(url, timeoutMs) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal });
+    if (!res.ok) throw new Error('http ' + res.status);
+    return res;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function fetchStatusHtml(targetUrl) {
+  const encoded = encodeURIComponent(targetUrl);
+  const routes = [
+    async () => { const r = await fetchWithTimeout(`https://api.allorigins.win/raw?url=${encoded}`, 12000); return await r.text(); },
+    async () => { const r = await fetchWithTimeout(`https://api.allorigins.win/get?url=${encoded}`, 12000); const j = await r.json(); return j.contents || ''; },
+    async () => { const r = await fetchWithTimeout(`https://corsproxy.io/?url=${encoded}`, 12000); return await r.text(); }
+  ];
+  for (const route of routes) {
+    try {
+      const html = await route();
+      if (html && html.length > 200) return html;
+    } catch (e) { /* 次のルートを試す */ }
+  }
+  return null;
+}
+
 async function fetchTrainStatus() {
   const lineAtStart = currentLine;
   const banner = document.getElementById('status-banner');
   const icon = document.getElementById('status-icon');
   const text = document.getElementById('status-text');
   const lineInfo = LINE_CONFIG[lineAtStart];
+  const nowTime = () => {
+    const d = new Date();
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  };
+  const showUnknown = (msg) => {
+    banner.className = 'status-banner unknown';
+    icon.innerText = '❓';
+    text.innerText = `${lineInfo.name}：${msg}（タップで公式ページ）`;
+  };
 
-  try {
-    const cacheBusterUrl = `${lineInfo.delayUrl}?_=${Date.now()}`;
-    const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(cacheBusterUrl)}`);
-    
-    if (currentLine !== lineAtStart) return;
+  const html = await fetchStatusHtml(`${lineInfo.delayUrl}?_=${Date.now()}`);
+  if (currentLine !== lineAtStart) return;
+  if (!html) { showUnknown('運行情報を取得できませんでした'); return; }
 
-    if (res.ok) {
-      const data = await res.json();
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(data.contents, 'text/html');
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  // まず状況エリアの要素を探し、無ければページ冒頭の「○時○分更新」直後の文章を使う
+  let segment = '';
+  const troubleElement = doc.querySelector('.trouble') || doc.querySelector('#mdServiceStatus') || doc.querySelector('#mdStatusTrouble');
+  if (troubleElement && troubleElement.textContent.trim()) {
+    segment = troubleElement.textContent;
+  } else if (doc.body) {
+    const bodyText = doc.body.textContent.replace(/\s+/g, ' ');
+    const idx = bodyText.indexOf('更新');
+    if (idx >= 0) segment = bodyText.substring(idx, idx + 300);
+  }
+  segment = segment.replace(/\s+/g, ' ').trim();
+  if (!segment) { showUnknown('運行状況を確認できませんでした'); return; }
 
-      // Yahoo!の運行状況テキストエリアを取得
-      const troubleElement = doc.querySelector('.trouble') || doc.querySelector('#mdServiceStatus') || doc.querySelector('#mdStatusTrouble');
-      const troubleText = troubleElement ? troubleElement.innerText.trim() : '';
+  const normalPhrases = ['情報はありません', '平常運転', '通常通り', '平常通り', '遅延はありません', '事故・遅延情報はありません'];
+  const isNormal = normalPhrases.some(p => segment.includes(p));
+  const delayKeywords = ['運転見合わせ', '運転再開', '遅延', '運休', 'ダイヤ乱れ', '折返し', '運転変更', '区間運休', '運転取りやめ', '一部列車'];
+  const isDelay = !isNormal && delayKeywords.some(k => segment.includes(k));
 
-      // トラブル判定キーワード
-      const delayKeywords = ['遅延', '運休', '運転見合わせ', '見合わせ', 'ダイヤ乱れ', '踏切', '事故', '見合わせ中'];
-      const isDelay = delayKeywords.some(keyword => troubleText.includes(keyword));
-
-      if (isDelay) {
-        banner.className = 'status-banner warn';
-        icon.innerText = '⚠️';
-        // 取得できたテキストから要約して表示（長すぎる場合は省略）
-        const cleanText = troubleText.replace(/\s+/g, ' ');
-        const shortMsg = cleanText.length > 25 ? cleanText.substring(0, 25) + '...' : cleanText;
-        text.innerText = `${lineInfo.name}：${shortMsg}`;
-      } else {
-        banner.className = 'status-banner normal';
-        icon.innerText = '🟢';
-        text.innerText = `${lineInfo.name}：平常運転`;
-      }
-    } else {
-      throw new Error('ネットワークエラー');
-    }
-  } catch (error) {
-    if (currentLine !== lineAtStart) return;
-    console.error('運行情報の取得に失敗しました:', error);
+  if (isDelay) {
+    banner.className = 'status-banner warn';
+    icon.innerText = '⚠️';
+    const shortMsg = segment.length > 48 ? segment.substring(0, 48) + '...' : segment;
+    text.innerText = `${lineInfo.name}：${shortMsg}（${nowTime()}更新）`;
+  } else if (isNormal) {
     banner.className = 'status-banner normal';
     icon.innerText = '🟢';
-    text.innerText = `${lineInfo.name}：平常運転`;
+    text.innerText = `${lineInfo.name}：平常運転（${nowTime()}更新）`;
+  } else {
+    showUnknown('運行状況を確認できませんでした');
   }
 }
 
