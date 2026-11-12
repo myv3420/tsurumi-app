@@ -924,6 +924,27 @@ async function fetchTrainStatus() {
     text.innerText = `${lineInfo.name}：${msg}（タップで公式ページ）`;
   };
 
+  // 専用中継（Cloudflare Worker）を最優先で使う
+  try {
+    const r = await fetchWithTimeout(`https://train-relay.myv3420.workers.dev/?line=${lineAtStart}&_=${Date.now()}`, 10000);
+    const j = await r.json();
+    if (currentLine !== lineAtStart) return;
+    if (j && j.status === 'normal') {
+      banner.className = 'status-banner normal';
+      icon.innerText = '🟢';
+      text.innerText = `${lineInfo.name}：平常運転（${j.updated || nowTime()}時点）`;
+      return;
+    }
+    if (j && j.status === 'trouble') {
+      banner.className = 'status-banner warn';
+      icon.innerText = '⚠️';
+      const msg = `${j.label || ''} ${j.detail || ''}`.trim();
+      const shortMsg = msg.length > 48 ? msg.substring(0, 48) + '...' : msg;
+      text.innerText = `${lineInfo.name}：${shortMsg}（${j.updated || nowTime()}時点）`;
+      return;
+    }
+  } catch (e) { /* 中継が使えない場合は従来ルートへ */ }
+
   const html = await fetchStatusHtml(`${lineInfo.delayUrl}?_=${Date.now()}`);
   if (currentLine !== lineAtStart) return;
   if (!html) { showUnknown('運行情報を取得できませんでした'); return; }
